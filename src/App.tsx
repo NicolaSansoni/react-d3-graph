@@ -42,8 +42,8 @@ export default function App() {
 
   const _nodes = useMemo(() => {
     return [
-      ...nodes.map((n) => ({ id: "n" + n.id, type: "n" })),
       ...links.map((l) => ({ id: "l" + l.id, type: "l" })),
+      ...nodes.map((n) => ({ id: "n" + n.id, type: "n" })),
     ];
   }, [nodes, links]);
 

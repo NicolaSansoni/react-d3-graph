@@ -1,5 +1,9 @@
 body {
-  background-color: #ecb;
+  background-color: #111;
+}
+
+svg {
+  background-color: #000;
 }
 
 .graph {
