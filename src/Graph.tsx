@@ -1,12 +1,5 @@
 import * as d3 from "d3";
-import {
-  DOMElement,
-  MutableRefObject,
-  Ref,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 import { forceBoundary } from "./forceBoundary";
 
 interface INode extends d3.SimulationNodeDatum {
@@ -32,8 +25,11 @@ export function Graph({ nodes, links, width = 600, height = 600 }: GraphProps) {
   const [selection, select] = useState("");
   const boundary = [-width / 2, -height / 2, +width / 2, +height / 2] as const;
   const center = { x: 0, y: 0 };
-  let zoomK = 1;
-  const getDims = () => ({ w: width / zoomK, h: height / zoomK });
+  let zoomK = useRef(1);
+  const getDims = () => ({
+    w: width / zoomK.current,
+    h: height / zoomK.current,
+  });
   const getViewBox = () => {
     const dims = getDims();
     return [center.x - dims.w / 2, center.y - dims.h / 2, dims.w, dims.h];
@@ -74,12 +70,10 @@ export function Graph({ nodes, links, width = 600, height = 600 }: GraphProps) {
 
         const n = g.filter((d) => d.type === "n");
         n.append("text")
-          .attr("class", "svgtext")
           .attr("filter", "url(#solid)")
-          // .attr("text-anchor", "middle")
-          // .attr("dominant-baseline", "central")
           .attr("font-family", "sans-serif")
-          .attr("font-size", "16px")
+          .attr("font-size", "18px")
+          .attr("transform", "scale(1)")
           .attr("fill", "white")
           .attr("paint-order", "stroke")
           .attr("stroke", "#000")
@@ -155,8 +149,12 @@ export function Graph({ nodes, links, width = 600, height = 600 }: GraphProps) {
       .zoom<any, INode>()
       .filter((event) => event.type === "wheel")
       .on("zoom", (event: ZoomEvent) => {
-        zoomK = event.transform.k;
+        zoomK.current = event.transform.k;
         svg.attr("viewBox", getViewBox());
+        d3.selectAll("text").attr(
+          "transform",
+          `scale(${1 / Math.pow(zoomK.current, 0.8)})`
+        );
       });
     svg.call(zoom);
 
@@ -164,8 +162,8 @@ export function Graph({ nodes, links, width = 600, height = 600 }: GraphProps) {
       .drag<any, any>()
       .filter((event) => event.button === 1)
       .on("drag", (event: d3.D3DragEvent<any, any, any>) => {
-        center.x -= event.dx / zoomK;
-        center.y -= event.dy / zoomK;
+        center.x -= event.dx / zoomK.current;
+        center.y -= event.dy / zoomK.current;
         svg.attr("viewBox", getViewBox());
       });
     svg.call(pan);
